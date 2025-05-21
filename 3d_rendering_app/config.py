@@ -5,8 +5,9 @@ from OpenGL.GL import *
 import ctypes
 from OpenGL.GL.shaders import compileProgram, compileShader
 
-SCREEN_WIDTH = 1000  # 640
-SCREEN_HEIGHT = 750  # 480
+SCREEN_WIDTH = 1000
+SCREEN_HEIGHT = 800
+ASPECT_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT  # / operator always returns floats in python
 
 data_type_vertex = np.dtype({
     "names": ["x", "y", "z", "color"],
@@ -22,7 +23,7 @@ def create_shader_program(vertex_filepath, fragment_filepath):
 
     shader = compileProgram(vertex_module, fragment_module)
     """
-    In the tutorial the two shader modules are deleted with glDeleteShader() 
+    In the tutorial, the two shader modules are deleted with glDeleteShader() 
     to save performance, but this caused an error for me.
     """
     return shader

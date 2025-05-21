@@ -8,28 +8,32 @@ and alongside learn about the theory of 3d computer graphics.
 In here I will document the progress of my project.
 
 ### Initial State
-I already did some trying out in a different project but I will start from mostly nothing in here. 
+I already did some trying out in a different project, but I will start from mostly nothing in here. 
 The initial commit only consists of some code that creates a window using GLFW.
+<br>
 (From this article: https://medium.com/@shashankdwivedi6386/pyopengl-creating-simple-window-in-python-9ae3b10f6355)
 
-### 7th April: Python OpenGL Introduction Tutorial
-As an intro to (Py)OpenGL I am watching this tutorial series and following along: 
-https://www.youtube.com/watch?v=JOL-Ae0OkN8&list=PLn3eTxaOtL2N4-HCA6wFtHIYsu1NR-jqg
+### 1st Log: Python OpenGL Introduction Tutorial
+The following tutorial series helped to form the basis of the project and get into (Py)OpenGL.
+<br>
+(https://www.youtube.com/watch?v=JOL-Ae0OkN8&list=PLn3eTxaOtL2N4-HCA6wFtHIYsu1NR-jqg)
 
-I will note all important information mentioned in the videos.
+Some explanation notes from the video:
 
-GLFW : windowing library, for opening windows and detecting user input
-NumPy : numpy arrays are better suited for working with OpenGL than Python lists
-Double Buffer System : one buffer is presented to the screen, the other buffer can be written to by the GPU
-GLSL : GL Shading Language, c-like language that the shader programs (vertex.txt, fragment.txt) are written in
-OpenGL coordinate system : values range from -1.0 to 1.0, x is right, y is top, z is front
-Shaders : modules that are part of the pipeline, output an attribute and can take in an attribute
-Vertex Buffer : memory allocation on the gpu but without any meaning attached
-Attribute Pointer : how the GPU can interpret a vertex buffer
-Vertex Array : "convenience object" that wraps up vertex buffers and attribute pointers
+**GLFW** : windowing library, for opening windows and detecting user input
+<br>**NumPy** : numpy arrays are better suited for working with OpenGL than Python lists
+<br>**Double Buffer System** : one buffer is presented to the screen, the other buffer can be written to by the GPU
+<br>**GLSL** : GL Shading Language, c-like language that the shader programs (vertex.txt, fragment.txt) are written in
+<br>**OpenGL coordinate system** : values range from -1.0 to 1.0, x is right, y is top, z is front
+<br>**Shaders** : modules that are part of the pipeline, output an attribute and can take in an attribute
+<br>**Vertex Buffer** : memory allocation on the gpu but without any meaning attached
+<br>**Attribute Pointer** : how the GPU can interpret a vertex buffer
+<br>**Vertex Array** : "convenience object" that wraps up vertex buffers and attribute pointers
 
-_vertex.txt_
+_vertex.txt_<br>
 writes to the in-built variable gl_Position, outputs a color to the fragmentColor attribute
 
-_fragment.txt_
+_fragment.txt_<br>
 takes fragmentColor as an input and outputs screenColor to the screen
+
+### 2nd Log: Perspective Projection
