@@ -10,6 +10,8 @@ custom_transform = Transform().add_scale_evenly(2).add_translation(x_amount=0.5)
 Access the final matrix:
 custom_transform.matrix
 """
+
+
 class Transform:
     def __init__(self):
         self.matrix = np.array([
@@ -125,3 +127,12 @@ class Transform:
         self.matrix = transform.dot(self.matrix)
 
         return self
+
+    def add_matrix(self, matrix):
+        self.matrix = matrix.dot(self.matrix)
+
+        return self
+
+    def mult_vec3_from_right(self, vec):
+        vec4 = self.matrix.dot(np.array([vec[0], vec[1], vec[2], 1], np.float32))
+        return np.array([vec4[0], vec4[1], vec4[2]], np.float32)

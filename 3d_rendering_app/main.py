@@ -3,7 +3,8 @@ import numpy as np
 
 from config import *
 import mesh_factory
-from transformations import Transform
+from transformation import Transform
+from camera import Camera
 
 
 def draw_rotating_triangle(uniform_location):
@@ -45,13 +46,7 @@ class App:
     def __init__(self):
         self.initialize_glfw()
         self.initialize_opengl()
-
-        # fields used for basic camera inputs
-        self.rotate_x_input = 0
-        self.rotate_y_input = 0
-        self.translate_x_input = 0
-        self.translate_y_input = 0
-        self.translate_z_input = 2  # the scene needs some distance to the camera to be visible
+        self.camera = Camera()
 
     def initialize_glfw(self):
         glfw.init()
@@ -74,74 +69,67 @@ class App:
             if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_ESCAPE) == GLFW_CONSTANTS.GLFW_PRESS:
                 break  # close the window esc key
 
-            self.add_basic_controls()
+            self.query_camera_controls()
 
             glfw.poll_events()  # clears the event queue, otherwise the event buffer would overflow
 
             glClear(GL_COLOR_BUFFER_BIT)  # clears the color of the screen
             glUseProgram(self.shader)
 
-            uniform_location = glGetUniformLocation(self.shader, "model")
+            trans = (Transform()
+                     # .add_rotation_y(np.degrees(glfw.get_time()))
+                     .add_translation(z_amount=2)
+                     .add_matrix(matrix=self.camera.get_matrix())
+                     .add_perspective()
+                     )
 
-            glUniformMatrix4fv(uniform_location, 1, GL_TRUE, self.get_basic_camera_matrix())
+            uniform_location = glGetUniformLocation(self.shader, "model")
+            glUniformMatrix4fv(uniform_location, 1, GL_TRUE, trans.matrix)
             glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, None)
 
             glfw.swap_buffers(self.window)
 
     """
-    The functions adds basic inputs to mimic camera like controls.
+    The functions queries for keyboard input to trigger camera positioning/rotation.
     (Needs to be called from within the window loop)
     Control scheme:
-    W/S – z translation (move front/back)
-    A/D – x translation (move left/right)
-    SPACE/LEFT_SHIFT – y translation (move up/down)
-    UP/DOWN – x rotation (tilt up/down)
-    LEFT/RIGHT – y rotation (tilt left/right)
+    W/S – move front/back
+    A/D – move left/right
+    SPACE/LEFT_SHIFT – move up/down
+    LEFT/RIGHT – tilt left/right
+    UP/DOWN – tilt up/down
     """
-    def add_basic_controls(self):
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_RIGHT) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.rotate_y_input = self.rotate_y_input - 1
 
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_LEFT) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.rotate_y_input = self.rotate_y_input + 1
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_UP) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.rotate_x_input = self.rotate_x_input + 1
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_DOWN) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.rotate_x_input = self.rotate_x_input - 1
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_D) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_x_input = self.translate_x_input - 0.05
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_A) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_x_input = self.translate_x_input + 0.05
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_SPACE) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_y_input = self.translate_y_input - 0.05
-
-        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_LEFT_SHIFT) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_y_input = self.translate_y_input + 0.05
-
+    def query_camera_controls(self):
         if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_W) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_z_input = self.translate_z_input - 0.05
+            self.camera.move_forward()
 
         if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_S) == GLFW_CONSTANTS.GLFW_PRESS:
-            self.translate_z_input = self.translate_z_input + 0.05
+            self.camera.move_backward()
 
-    """
-    The function creates a transformation matrix based on the current inputs.
-    (Needs to be called from within the window loop).
-    The returned matrix can be uploaded to the vertex shader (vertex.txt) via a uniform. 
-    """
-    def get_basic_camera_matrix(self):
-        return (Transform()
-                .add_rotation_x(self.rotate_x_input)
-                .add_rotation_y(self.rotate_y_input)
-                .add_translation(x_amount=self.translate_x_input,
-                                 y_amount=self.translate_y_input,
-                                 z_amount=self.translate_z_input)
-                .add_perspective(fov=90, near_z=1, far_z=10)).matrix
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_A) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.move_left()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_D) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.move_right()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_SPACE) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.move_up()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_LEFT_SHIFT) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.move_down()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_LEFT) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.rotate_left()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_RIGHT) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.rotate_right()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_UP) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.rotate_up()
+
+        if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_DOWN) == GLFW_CONSTANTS.GLFW_PRESS:
+            self.camera.rotate_down()
 
     def quit(self):
         glDeleteBuffers(2, (self.vbo, self.ebo))
