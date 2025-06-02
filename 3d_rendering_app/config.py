@@ -5,11 +5,12 @@ from OpenGL.GL import *
 import ctypes
 from OpenGL.GL.shaders import compileProgram, compileShader
 
+
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 800
 ASPECT_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT  # / operator always returns floats in python
 
-data_type_vertex = np.dtype({
+vertex_datatype = np.dtype({
     "names": ["x", "y", "z", "color"],
     "formats": [np.float32, np.float32, np.float32, np.uint32],
     "offsets": [0, 4, 8, 12],
@@ -33,4 +34,5 @@ def create_shader_module(filepath, module_type):
     with open(filepath, "r") as file:
         source_code = file.readlines()
 
-    return compileShader(source_code, module_type)  # takes in the source code as string and an int indicating the shader type, e.g. GL_VERTEX_SHADER
+    # takes in the source code as string and an int indicating the shader type, e.g. GL_VERTEX_SHADER
+    return compileShader(source_code, module_type)

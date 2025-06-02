@@ -108,7 +108,7 @@ class Transform:
     near_z and far_z are needed to determine the range of -1 to 1 (everything outside will be clipped)
     """
 
-    def add_perspective(self, fov=90, near_z=1, far_z=10):
+    def add_perspective(self, fov=90, near_z=1, far_z=15):
         tan_half_fov = np.tan(np.radians(fov / 2))
         d = 1 / tan_half_fov  # z distance from camera origin
 

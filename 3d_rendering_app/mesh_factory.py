@@ -20,7 +20,7 @@ def build_triangle_mesh():
     position_buffer = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, position_buffer)
     glBufferData(GL_ARRAY_BUFFER, position_data.nbytes, position_data,
-                 GL_STATIC_DRAW)  # static draw = online one data upload intended
+                 GL_STATIC_DRAW)  # static draw = only one data upload intended
     glVertexAttribPointer(
         0,  # index of the attribute
         3,  # number of elements (x,y,z => 3)
@@ -44,63 +44,67 @@ def build_triangle_mesh():
     )
     glEnableVertexAttribArray(1)
 
-    return (position_buffer, color_buffer), vao
+    return position_buffer, color_buffer, vao
 
 
-def build_triangle_mesh2():
-    # translates by 0.5 to the right (positive x)
-    transform = np.array([
-        [1, 0, 0.5],
-        [0, 1, 0],
-        [0, 0, 1]], dtype=np.float32
-    )
-
-    vertices = [
-        np.array([-0.3, -0.3, 1], dtype=np.float32),
-        np.array([0.3, -0.3, 1], dtype=np.float32),
-        np.array([0.0, 0.3, 1], dtype=np.float32)
-    ]
-
-    # transformed_vertices = [transform.dot(v) for v in vertices]
-    transformed_vertices = vertices
-
-    vertex_data = np.zeros(3, dtype=data_type_vertex)
-    vertex_data[0] = (transformed_vertices[0][0], transformed_vertices[0][1], 0.0, 0)
-    vertex_data[1] = (transformed_vertices[1][0], transformed_vertices[1][1], 0.0, 1)
-    vertex_data[2] = (transformed_vertices[2][0], transformed_vertices[2][1], 0.0, 2)
+def build_colored_cube_mesh():
+    vertices = np.array([
+        # front
+        (-0.5, 0.5, 0.5, 0),  # top left
+        (0.5, 0.5, 0.5, 1),  # top right
+        (0.5, -0.5, 0.5, 2),  # bottom right
+        (-0.5, -0.5, 0.5, 3),  # bottom left
+        # back
+        (-0.5, 0.5, -0.5, 2),  # top left
+        (0.5, 0.5, -0.5, 3),  # top right
+        (0.5, -0.5, -0.5, 0),  # bottom right
+        (-0.5, -0.5, -0.5, 1)  # bottom left
+    ], dtype=vertex_datatype)
 
     vao = glGenVertexArrays(1)
     glBindVertexArray(vao)
 
     vbo = glGenBuffers(1)
     glBindBuffer(GL_ARRAY_BUFFER, vbo)
-    glBufferData(GL_ARRAY_BUFFER, vertex_data.nbytes, vertex_data,
-                 GL_STATIC_DRAW)  # static draw = online one data upload intended
+    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
     glVertexAttribPointer(
-        0,  # index of the attribute
-        3,  # number of elements (x,y,z => 3)
-        GL_FLOAT,  # data type of each number
-        GL_FALSE,  # if floating point numbers should be normalized
-        data_type_vertex.itemsize,
-        # stride: number of bytes to go from one attribute to the next: 32 bits * 3 elements / 8 = 12 bytes
-        ctypes.c_void_p(0)  # offset: where the first position is
+        0,
+        3,
+        GL_FLOAT,
+        GL_FALSE,
+        vertex_datatype.itemsize,
+        ctypes.c_void_p(0)
     )
-    glEnableVertexAttribArray(0)
 
     glVertexAttribIPointer(
-        1,  # index of the attribute
-        1,  # number of elements
-        GL_UNSIGNED_INT,  # data type of each number
-        data_type_vertex.itemsize,  # number of bytes to go from one attribute to the next: 32 bit = 4 byte
-        ctypes.c_void_p(12)  # offset, where the first position is
+        1,
+        1,
+        GL_UNSIGNED_INT,
+        vertex_datatype.itemsize,
+        ctypes.c_void_p(12)
     )
+
+    glEnableVertexAttribArray(0)
     glEnableVertexAttribArray(1)
 
-    return vbo, vao
+    indices = np.array([
+        0, 1, 2, 0, 2, 3,  # front face
+        1, 5, 6, 1, 6, 2,  # right face
+        5, 4, 7, 5, 7, 6,  # back face
+        4, 0, 3, 4, 3, 7,  # left face
+        4, 5, 1, 4, 1, 0,  # top face
+        3, 2, 6, 3, 6, 7  # bottom face
+    ], dtype=np.uint32)
+
+    ebo = glGenBuffers(1)
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.nbytes, indices, GL_STATIC_DRAW)
+
+    return ebo, vbo, vao
 
 
-def build_cube_mesh():
+def build_line_cube_mesh():
     vertices = np.array((
         -0.5, 0.5, 0.5,  # 0 front top left
         0.5, 0.5, 0.5,  # 1 front top right

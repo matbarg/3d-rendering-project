@@ -7,46 +7,11 @@ from transformation import Transform
 from camera import Camera
 
 
-def draw_rotating_triangle(uniform_location):
-    transform1 = np.array([
-        [1, 0, 0, 0],
-        [0, 1, 0, -0.3],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]], dtype=np.float32
-    )
-
-    c = np.cos(glfw.get_time())
-    s = np.sin(glfw.get_time())
-    transform2 = np.array([
-        [c, -s, 0, 0],
-        [s, c, 0, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]], dtype=np.float32
-    )
-
-    transform = transform2.dot(transform1)
-
-    glUniformMatrix4fv(uniform_location, 1, GL_TRUE, transform)
-
-    glDrawArrays(GL_TRIANGLES, 0, 3)  # every three points are taken together as a single solid shape
-
-
-def draw_rotating_cube(uniform_location):
-    transform = (Transform()
-                 .add_rotation_y(np.degrees(glfw.get_time()))
-                 .add_translation(z_amount=2)
-                 .add_perspective(fov=90, near_z=1, far_z=10)
-                 )
-
-    glUniformMatrix4fv(uniform_location, 1, GL_TRUE, transform.matrix)
-    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, None)  # count is the number of indices to connect with lines
-
-
 class App:
     def __init__(self):
         self.initialize_glfw()
         self.initialize_opengl()
-        self.camera = Camera()
+        self.camera = Camera(initial_z=-2)
 
     def initialize_glfw(self):
         glfw.init()
@@ -59,33 +24,42 @@ class App:
         glfw.make_context_current(self.window)
 
     def initialize_opengl(self):
-        glClearColor(0.1, 0.1, 0.1, 1.0)  # set the displayed color of the window
-        self.ebo, self.vbo, self.vao = mesh_factory.build_cube_mesh()
+        glClearColor(0.2, 0.2, 0.3, 1.0)  # set the displayed color of the window
+
+        # Enable depth testing
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LESS)
+
+        self.ebo, self.vbo, self.vao = mesh_factory.build_colored_cube_mesh()
         # glBindVertexArray(self.triangle_vao)
         self.shader = create_shader_program("shaders/vertex.txt", "shaders/fragment.txt")
 
-    def run(self):
+    def render(self):
         while not glfw.window_should_close(self.window):
             if glfw.get_key(self.window, GLFW_CONSTANTS.GLFW_KEY_ESCAPE) == GLFW_CONSTANTS.GLFW_PRESS:
-                break  # close the window esc key
+                break  # close the window on esc key
 
             self.query_camera_controls()
 
             glfw.poll_events()  # clears the event queue, otherwise the event buffer would overflow
 
-            glClear(GL_COLOR_BUFFER_BIT)  # clears the color of the screen
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # clears the color of the screen
             glUseProgram(self.shader)
 
             trans = (Transform()
                      # .add_rotation_y(np.degrees(glfw.get_time()))
-                     .add_translation(z_amount=2)
+                     # .add_translation(z_amount=0)
+                     # .add_scale(z_amount=3)
+                     # .add_rotation_z(90)
+                     # .add_rotation_y(np.degrees(glfw.get_time()))
                      .add_matrix(matrix=self.camera.get_matrix())
                      .add_perspective()
                      )
 
             uniform_location = glGetUniformLocation(self.shader, "model")
             glUniformMatrix4fv(uniform_location, 1, GL_TRUE, trans.matrix)
-            glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, None)
+            # glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, None)
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, None)
 
             glfw.swap_buffers(self.window)
 
@@ -139,7 +113,11 @@ class App:
         glfw.terminate()
 
 
-if __name__ == '__main__':
+def main() -> None:
     my_app = App()
-    my_app.run()
+    my_app.render()
     my_app.quit()
+
+
+if __name__ == '__main__':
+    main()
